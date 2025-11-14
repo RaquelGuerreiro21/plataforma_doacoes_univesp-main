@@ -1,0 +1,630 @@
+{% extends 'base.html' %}
+
+{% block title %}Doações - Sistema de Doações{% endblock %}
+
+{% block extra_head %}
+<style>
+    .avatar-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+    }
+    .table th {
+        font-weight: 600;
+        font-size: 0.9em;
+    }
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+    }
+    .badge {
+        font-size: 0.85em;
+        padding: 0.5em 0.8em;
+    }
+</style>
+<script>
+function editItem(id) {
+    fetch(`/api/itens/${id}/`)
+        .then(response => response.json())
+        .then(item => {
+            document.getElementById('edit_item_id').value = item.id;
+            document.getElementById('edit_nome').value = item.nome;
+            document.getElementById('edit_tipo').value = item.tipo;
+            document.getElementById('edit_descricao').value = item.descricao || '';
+            document.getElementById('edit_disponivel').checked = item.disponivel;
+            new bootstrap.Modal(document.getElementById('editItemModal')).show();
+        });
+}
+
+function deleteItem(id) {
+    if (confirm('Tem certeza que deseja excluir este item?')) {
+        fetch(`/api/itens/${id}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        }).then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('Erro ao excluir item');
+            }
+        });
+    }
+}
+
+function editDinheiro(id) {
+    fetch(`/api/doacoes/${id}/`)
+        .then(response => response.json())
+        .then(doacao => {
+            document.getElementById('edit_doacao_id').value = doacao.id;
+            document.getElementById('edit_doador').value = doacao.doador;
+            document.getElementById('edit_valor').value = doacao.valor;
+            document.getElementById('edit_recebedor').value = doacao.recebedor || '';
+            new bootstrap.Modal(document.getElementById('editDinheiroModal')).show();
+        });
+}
+
+function deleteDinheiro(id) {
+    if (confirm('Tem certeza que deseja excluir esta doação em dinheiro?')) {
+        fetch(`/api/doacoes/${id}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        }).then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('Erro ao excluir doação');
+            }
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const addModal = new bootstrap.Modal(document.getElementById('addItemModal'));
+    const addForm = document.getElementById('addItemForm');
+    const editForm = document.getElementById('editItemForm');
+    const btnSalvarItem = document.getElementById('btnSalvarItem');
+    const btnSalvarEdicaoItem = document.getElementById('btnSalvarEdicaoItem');
+    const addDinheiroForm = document.getElementById('addDinheiroForm');
+    const editDinheiroForm = document.getElementById('editDinheiroForm');
+    const btnSalvarDinheiro = document.getElementById('btnSalvarDinheiro');
+    const btnSalvarEdicaoDinheiro = document.getElementById('btnSalvarEdicaoDinheiro');
+
+    // Função para validar formulário
+    function validateForm(form) {
+        if (!form.checkValidity()) {
+            form.classList.add('was-validated');
+            return false;
+        }
+        return true;
+    }
+
+    // Função para limpar validação
+    function clearValidation(form) {
+        form.classList.remove('was-validated');
+    }
+
+    addForm.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        if (!validateForm(this)) {
+            return;
+        }
+
+        btnSalvarItem.disabled = true;
+        const formData = new FormData(this);
+
+        try {
+            const response = await fetch('/api/itens/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: formData
+            });
+
+            if (response.ok) {
+                addModal.hide();
+                this.reset();
+                clearValidation(this);
+                window.location.reload();
+            } else {
+                const data = await response.json();
+                alert(data.error || 'Erro ao criar item');
+            }
+        } catch (error) {
+            alert('Erro ao processar a requisição');
+        } finally {
+            btnSalvarItem.disabled = false;
+        }
+    });
+
+    editForm.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        if (!validateForm(this)) {
+            return;
+        }
+
+        btnSalvarEdicaoItem.disabled = true;
+        const formData = new FormData(this);
+        const itemId = document.getElementById('edit_item_id').value;
+
+        try {
+            const response = await fetch(`/api/itens/${itemId}/`, {
+                method: 'PATCH',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: formData
+            });
+
+            if (response.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('editItemModal')).hide();
+                clearValidation(this);
+                window.location.reload();
+            } else {
+                const data = await response.json();
+                alert(data.error || 'Erro ao atualizar item');
+            }
+        } catch (error) {
+            alert('Erro ao processar a requisição');
+        } finally {
+            btnSalvarEdicaoItem.disabled = false;
+        }
+    });
+
+    addDinheiroForm.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        if (!validateForm(this)) {
+            return;
+        }
+
+        btnSalvarDinheiro.disabled = true;
+        const formData = new FormData(this);
+        formData.append('tipo_doacao', 'dinheiro');
+        formData.append('doador_tipo', 'existente');
+
+        try {
+            const response = await fetch('/api/doacoes/wizard/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: formData
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                const data = await response.json();
+                alert(data.error || 'Erro ao criar doação');
+            }
+        } catch (error) {
+            alert('Erro ao processar a requisição');
+        } finally {
+            btnSalvarDinheiro.disabled = false;
+        }
+    });
+
+    editDinheiroForm.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        if (!validateForm(this)) {
+            return;
+        }
+
+        btnSalvarEdicaoDinheiro.disabled = true;
+        const formData = new FormData(this);
+        const doacaoId = document.getElementById('edit_doacao_id').value;
+        formData.append('tipo_doacao', 'dinheiro');
+        formData.append('doador_tipo', 'existente');
+
+        try {
+            const response = await fetch(`/api/doacoes/${doacaoId}/`, {
+                method: 'PATCH',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: formData
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                const data = await response.json();
+                alert(data.error || 'Erro ao atualizar doação');
+            }
+        } catch (error) {
+            alert('Erro ao processar a requisição');
+        } finally {
+            btnSalvarEdicaoDinheiro.disabled = false;
+        }
+    });
+
+    // Limpar validação ao fechar os modais
+    document.getElementById('addItemModal').addEventListener('hidden.bs.modal', function () {
+        clearValidation(addForm);
+        addForm.reset();
+    });
+
+    document.getElementById('editItemModal').addEventListener('hidden.bs.modal', function () {
+        clearValidation(editForm);
+    });
+
+    document.getElementById('addDinheiroModal').addEventListener('hidden.bs.modal', function () {
+        clearValidation(addDinheiroForm);
+        addDinheiroForm.reset();
+    });
+
+    document.getElementById('editDinheiroModal').addEventListener('hidden.bs.modal', function () {
+        clearValidation(editDinheiroForm);
+    });
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h3 mb-2">Doações</h2>
+            <p class="text-muted mb-0">Gerenciamento de itens e valores disponíveis</p>
+        </div>
+        <div>
+            <button type="button" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#addDinheiroModal">
+                <i class="fas fa-dollar-sign me-2"></i>Nova Doação em Dinheiro
+            </button>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addItemModal">
+                <i class="fas fa-box me-2"></i>Novo Item
+            </button>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nome/Valor</th>
+                        <th>Descrição/Tipo</th>
+      <th>Tipo</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+    </tr>
+  </thead>
+  <tbody>
+                    {% for doacao in doacoes %}
+                        {% if doacao.valor %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle bg-success bg-opacity-10 text-success me-3">
+                                        <i class="fas fa-dollar-sign"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">R$ {{ doacao.valor }}</h6>
+                                        <small class="text-muted">{{ doacao.doador.nome }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>Doação em Dinheiro</td>
+                            <td>
+                                <span class="badge bg-success">Monetária</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">
+                                    {% if doacao.recebedor %}Entregue{% else %}Disponível{% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary me-2" onclick="editDinheiro('{{ doacao.id }}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteDinheiro('{{ doacao.id }}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+    {% for item in itens %}
+      <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle bg-warning bg-opacity-10 text-warning me-3">
+                                    <i class="fas fa-box"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">{{ item.nome }}</h6>
+                                    <small class="text-muted">{{ item.doador.nome }}</small>
+                                </div>
+                            </div>
+                        </td>
+        <td>{{ item.descricao }}</td>
+        <td>
+                            <span class="badge bg-info">{{ item.get_tipo_display }}</span>
+        </td>
+        <td>
+                            <span class="badge {% if item.disponivel %}bg-success{% else %}bg-danger{% endif %}">
+                                {{ item.disponivel|yesno:"Disponível,Indisponível" }}
+                            </span>
+        </td>
+        <td>
+                            <button class="btn btn-sm btn-outline-primary me-2" onclick="editItem('{{ item.id }}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteItem('{{ item.id }}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+        </td>
+      </tr>
+    {% empty %}
+                    {% if not doacoes %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4">
+                            <div class="text-muted">
+                                <i class="fas fa-box-open fa-2x mb-3"></i>
+                                <p class="mb-0">Nenhuma doação cadastrada</p>
+                            </div>
+                        </td>
+      </tr>
+                    {% endif %}
+    {% endfor %}
+  </tbody>
+</table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Adicionar Item -->
+<div class="modal fade" id="addItemModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Adicionar Novo Item</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addItemForm" class="needs-validation" novalidate>
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nome" class="form-label">Nome *</label>
+                        <input type="text" class="form-control" id="nome" name="nome" required>
+                        <div class="invalid-feedback">
+                            Por favor, informe o nome do item.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="tipo" class="form-label">Tipo *</label>
+                        <select class="form-select" id="tipo" name="tipo" required>
+                            <option value="">Selecione um tipo</option>
+                            <option value="RO">Roupas</option>
+                            <option value="MO">Móveis</option>
+                            <option value="CO">Comidas</option>
+                            <option value="PE">Perecíveis</option>
+                            <option value="EL">Eletrônicos</option>
+                            <option value="LI">Livros</option>
+                            <option value="BR">Brinquedos</option>
+                            <option value="UD">Utensílios Domésticos</option>
+                            <option value="MS">Material Escolar</option>
+                            <option value="FE">Ferramentas</option>
+                            <option value="JR">Jornais/Revistas</option>
+                            <option value="CB">Cobertores</option>
+                            <option value="CA">Calçados</option>
+                            <option value="AC">Acessórios</option>
+                            <option value="IM">Instrumentos Musicais</option>
+                            <option value="PH">Produtos de Higiene</option>
+                            <option value="ME">Medicamentos</option>
+                            <option value="VE">Veículos</option>
+                            <option value="ED">Eletrodomésticos</option>
+                            <option value="MC">Materiais de Construção</option>
+                            <option value="OU">Outros</option>
+                        </select>
+                        <div class="invalid-feedback">
+                            Por favor, selecione o tipo do item.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="descricao" class="form-label">Descrição</label>
+                        <textarea class="form-control" id="descricao" name="descricao" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="foto" class="form-label">Foto</label>
+                        <input type="file" class="form-control" id="foto" name="foto" accept="image/*">
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="disponivel" name="disponivel" checked>
+                        <label class="form-check-label" for="disponivel">Item disponível para doação</label>
+                    </div>
+                    <small class="text-muted">* Campos obrigatórios</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnSalvarItem">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Item -->
+<div class="modal fade" id="editItemModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Item</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editItemForm" class="needs-validation" novalidate>
+                {% csrf_token %}
+                <input type="hidden" id="edit_item_id" name="item_id">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="edit_nome" class="form-label">Nome *</label>
+                        <input type="text" class="form-control" id="edit_nome" name="nome" required>
+                        <div class="invalid-feedback">
+                            Por favor, informe o nome do item.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_tipo" class="form-label">Tipo *</label>
+                        <select class="form-select" id="edit_tipo" name="tipo" required>
+                            <option value="">Selecione um tipo</option>
+                            <option value="RO">Roupas</option>
+                            <option value="MO">Móveis</option>
+                            <option value="CO">Comidas</option>
+                            <option value="PE">Perecíveis</option>
+                            <option value="EL">Eletrônicos</option>
+                            <option value="LI">Livros</option>
+                            <option value="BR">Brinquedos</option>
+                            <option value="UD">Utensílios Domésticos</option>
+                            <option value="MS">Material Escolar</option>
+                            <option value="FE">Ferramentas</option>
+                            <option value="JR">Jornais/Revistas</option>
+                            <option value="CB">Cobertores</option>
+                            <option value="CA">Calçados</option>
+                            <option value="AC">Acessórios</option>
+                            <option value="IM">Instrumentos Musicais</option>
+                            <option value="PH">Produtos de Higiene</option>
+                            <option value="ME">Medicamentos</option>
+                            <option value="VE">Veículos</option>
+                            <option value="ED">Eletrodomésticos</option>
+                            <option value="MC">Materiais de Construção</option>
+                            <option value="OU">Outros</option>
+                        </select>
+                        <div class="invalid-feedback">
+                            Por favor, selecione o tipo do item.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_descricao" class="form-label">Descrição</label>
+                        <textarea class="form-control" id="edit_descricao" name="descricao" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_foto" class="form-label">Foto</label>
+                        <input type="file" class="form-control" id="edit_foto" name="foto" accept="image/*">
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="edit_disponivel" name="disponivel">
+                        <label class="form-check-label" for="edit_disponivel">Item disponível para doação</label>
+                    </div>
+                    <small class="text-muted">* Campos obrigatórios</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnSalvarEdicaoItem">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Adicionar Doação em Dinheiro -->
+<div class="modal fade" id="addDinheiroModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nova Doação em Dinheiro</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addDinheiroForm" class="needs-validation" novalidate>
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="doador" class="form-label">Doador *</label>
+                        <select class="form-select" id="doador" name="doador_id" required>
+                            <option value="">Selecione um doador</option>
+                            {% for doador in doadores %}
+                            <option value="{{ doador.id }}">{{ doador.nome }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="invalid-feedback">
+                            Por favor, selecione o doador.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="valor" class="form-label">Valor (R$) *</label>
+                        <input type="number" class="form-control" id="valor" name="valor" step="0.01" min="0.01" required>
+                        <div class="invalid-feedback">
+                            Por favor, informe um valor válido maior que zero.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="recebedor" class="form-label">Recebedor</label>
+                        <select class="form-select" id="recebedor" name="recebedor_id">
+                            <option value="">Selecione um recebedor</option>
+                            {% for recebedor in recebedores %}
+                            <option value="{{ recebedor.id }}">{{ recebedor.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <small class="text-muted">* Campos obrigatórios</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnSalvarDinheiro">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Doação em Dinheiro -->
+<div class="modal fade" id="editDinheiroModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Doação em Dinheiro</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editDinheiroForm" class="needs-validation" novalidate>
+                {% csrf_token %}
+                <input type="hidden" id="edit_doacao_id" name="doacao_id">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="edit_doador" class="form-label">Doador *</label>
+                        <select class="form-select" id="edit_doador" name="doador_id" required>
+                            <option value="">Selecione um doador</option>
+                            {% for doador in doadores %}
+                            <option value="{{ doador.id }}">{{ doador.nome }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="invalid-feedback">
+                            Por favor, selecione o doador.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_valor" class="form-label">Valor (R$) *</label>
+                        <input type="number" class="form-control" id="edit_valor" name="valor" step="0.01" min="0.01" required>
+                        <div class="invalid-feedback">
+                            Por favor, informe um valor válido maior que zero.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_recebedor" class="form-label">Recebedor</label>
+                        <select class="form-select" id="edit_recebedor" name="recebedor_id">
+                            <option value="">Selecione um recebedor</option>
+                            {% for recebedor in recebedores %}
+                            <option value="{{ recebedor.id }}">{{ recebedor.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <small class="text-muted">* Campos obrigatórios</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnSalvarEdicaoDinheiro">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

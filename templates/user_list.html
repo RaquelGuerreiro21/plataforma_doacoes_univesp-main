@@ -1,0 +1,322 @@
+{% extends 'base.html' %}
+
+{% block title %}Gerenciamento de Usuários{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h3 mb-2">Gerenciamento de Usuários</h2>
+            <p class="text-muted mb-0">Gerencie os usuários do sistema</p>
+        </div>
+        {% if user.role == 'ADMIN' %}
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+            <i class="fas fa-user-plus me-2"></i>Novo Gerente
+        </button>
+        {% endif %}
+    </div>
+
+    <!-- Users List -->
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nome</th>
+                        <th>E-mail</th>
+                        <th>Função</th>
+                        <th>Último Acesso</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user_item in users %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle bg-primary bg-opacity-10 text-primary me-3">
+                                    {{ user_item.nome_completo|make_list|first|upper }}
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">{{ user_item.nome_completo }}</h6>
+                                    <small class="text-muted">Criado em {{ user_item.data_criacao|date:"d/m/Y" }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ user_item.email }}</td>
+                        <td>
+                            <span class="badge {% if user_item.role == 'ADMIN' %}bg-danger{% else %}bg-info{% endif %}">
+                                {{ user_item.get_role_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if user_item.ultimo_acesso %}
+                                {{ user_item.ultimo_acesso|date:"d/m/Y H:i" }}
+                            {% else %}
+                                Nunca acessou
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.role == 'ADMIN' or user.id == user_item.id %}
+                            <button class="btn btn-sm btn-outline-primary me-2" 
+                                    onclick="editUser('{{ user_item.id }}', '{{ user_item.nome_completo }}', '{{ user_item.email }}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            {% endif %}
+                            {% if user.role == 'ADMIN' and user.id != user_item.id %}
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="deleteUser('{{ user_item.id }}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Adicionar Novo Gerente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addUserForm" class="needs-validation" novalidate>
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nome_completo" class="form-label">Nome Completo *</label>
+                        <input type="text" class="form-control" id="nome_completo" name="nome_completo" required>
+                        <div class="invalid-feedback">
+                            Por favor, informe o nome completo.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">E-mail *</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                        <div class="invalid-feedback">
+                            Por favor, informe um e-mail válido.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Senha *</label>
+                        <input type="password" class="form-control" id="password" name="password" required minlength="6">
+                        <div class="invalid-feedback">
+                            A senha deve ter pelo menos 6 caracteres.
+                        </div>
+                    </div>
+                    <small class="text-muted">* Campos obrigatórios</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Usuário</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editUserForm" class="needs-validation" novalidate>
+                {% csrf_token %}
+                <input type="hidden" id="edit_user_id" name="user_id">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="edit_nome_completo" class="form-label">Nome Completo *</label>
+                        <input type="text" class="form-control" id="edit_nome_completo" name="nome_completo" required>
+                        <div class="invalid-feedback">
+                            Por favor, informe o nome completo.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_email" class="form-label">E-mail *</label>
+                        <input type="email" class="form-control" id="edit_email" name="email" required>
+                        <div class="invalid-feedback">
+                            Por favor, informe um e-mail válido.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_password" class="form-label">Nova Senha (opcional)</label>
+                        <input type="password" class="form-control" id="edit_password" name="password" minlength="6">
+                        <div class="invalid-feedback">
+                            A senha deve ter pelo menos 6 caracteres.
+                        </div>
+                    </div>
+                    <small class="text-muted">* Campos obrigatórios</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_head %}
+<style>
+    .avatar-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+    }
+
+    .badge {
+        font-size: 0.85em;
+        padding: 0.5em 0.8em;
+    }
+
+    .table th {
+        font-weight: 600;
+        font-size: 0.9em;
+    }
+
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+    }
+</style>
+
+<script>
+function editUser(id, nome, email) {
+    document.getElementById('edit_user_id').value = id;
+    document.getElementById('edit_nome_completo').value = nome;
+    document.getElementById('edit_email').value = email;
+    new bootstrap.Modal(document.getElementById('editUserModal')).show();
+}
+
+function deleteUser(id) {
+    if (confirm('Tem certeza que deseja excluir este usuário?')) {
+        fetch(`/api/users/${id}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        }).then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('Erro ao excluir usuário');
+            }
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const addUserForm = document.getElementById('addUserForm');
+    const editUserForm = document.getElementById('editUserForm');
+
+    // Função para validar formulário
+    function validateForm(form) {
+        if (!form.checkValidity()) {
+            form.classList.add('was-validated');
+            return false;
+        }
+        return true;
+    }
+
+    // Função para limpar validação
+    function clearValidation(form) {
+        form.classList.remove('was-validated');
+    }
+
+    addUserForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        if (!validateForm(this)) {
+            return;
+        }
+
+        const formData = new FormData(this);
+        const submitButton = this.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+
+        try {
+            const response = await fetch('/api/users/create_gerente/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(Object.fromEntries(formData))
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                const data = await response.json();
+                alert(data.error || 'Erro ao criar usuário');
+            }
+        } catch (error) {
+            alert('Erro ao processar a requisição');
+        } finally {
+            submitButton.disabled = false;
+        }
+    });
+
+    editUserForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        if (!validateForm(this)) {
+            return;
+        }
+
+        const formData = new FormData(this);
+        const userId = formData.get('user_id');
+        const submitButton = this.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+
+        try {
+            const response = await fetch(`/api/users/${userId}/`, {
+                method: 'PATCH',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(Object.fromEntries(formData))
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                const data = await response.json();
+                alert(data.error || 'Erro ao atualizar usuário');
+            }
+        } catch (error) {
+            alert('Erro ao processar a requisição');
+        } finally {
+            submitButton.disabled = false;
+        }
+    });
+
+    // Limpar validação ao fechar os modais
+    document.getElementById('addUserModal').addEventListener('hidden.bs.modal', function () {
+        clearValidation(addUserForm);
+        addUserForm.reset();
+    });
+
+    document.getElementById('editUserModal').addEventListener('hidden.bs.modal', function () {
+        clearValidation(editUserForm);
+    });
+});
+</script>
+
+
+{% endblock %}
+{% endblock %} 

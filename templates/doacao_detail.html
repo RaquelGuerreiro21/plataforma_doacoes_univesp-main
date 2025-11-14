@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalhes da Doação - Sistema de Doações{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Cabeçalho -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h3 mb-2">Detalhes da Doação</h2>
+            <p class="text-muted mb-0">Informações completas sobre a doação</p>
+        </div>
+        <a href="{% url 'doacao_list' %}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar para Lista
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <!-- Card do Item -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">
+                        <i class="fas fa-box me-2 text-primary"></i>Item
+                    </h5>
+                    {% if doacao.item.foto %}
+                    <div class="text-center mb-4">
+                        <img src="{{ doacao.item.foto.url }}" alt="Foto do item" class="img-fluid rounded" style="max-height: 200px;">
+                    </div>
+                    {% endif %}
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <p class="text-muted mb-1">Nome</p>
+                            <p class="fw-bold">{{ doacao.item.nome }}</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <p class="text-muted mb-1">Tipo</p>
+                            <p class="fw-bold">{{ doacao.item.get_tipo_display }}</p>
+                        </div>
+                        {% if doacao.item.descricao %}
+                        <div class="col-12">
+                            <p class="text-muted mb-1">Descrição</p>
+                            <p class="fw-bold">{{ doacao.item.descricao }}</p>
+                        </div>
+                        {% endif %}
+                        <div class="col-12">
+                            <p class="text-muted mb-1">Status</p>
+                            <span class="badge {% if doacao.item.disponivel %}bg-success{% else %}bg-danger{% endif %}">
+                                {{ doacao.item.disponivel|yesno:"Disponível,Indisponível" }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card do Doador -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">
+                        <i class="fas fa-hand-holding-heart me-2 text-primary"></i>Doador
+                    </h5>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <p class="text-muted mb-1">Nome</p>
+                            <p class="fw-bold">{{ doacao.doador.nome }}</p>
+                        </div>
+                        {% if doacao.doador.email %}
+                        <div class="col-sm-6">
+                            <p class="text-muted mb-1">E-mail</p>
+                            <p class="fw-bold">{{ doacao.doador.email }}</p>
+                        </div>
+                        {% endif %}
+                        {% if doacao.doador.telefone %}
+                        <div class="col-sm-6">
+                            <p class="text-muted mb-1">Telefone</p>
+                            <p class="fw-bold">{{ doacao.doador.telefone }}</p>
+                        </div>
+                        {% endif %}
+                        {% if doacao.doador.endereco %}
+                        <div class="col-12">
+                            <p class="text-muted mb-1">Endereço</p>
+                            <p class="fw-bold">{{ doacao.doador.endereco }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card do Recebedor -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">
+                        <i class="fas fa-user me-2 text-primary"></i>Recebedor
+                    </h5>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <p class="text-muted mb-1">Nome</p>
+                            <p class="fw-bold">{{ doacao.recebedor.nome }}</p>
+                        </div>
+                        {% if doacao.recebedor.email %}
+                        <div class="col-sm-6">
+                            <p class="text-muted mb-1">E-mail</p>
+                            <p class="fw-bold">{{ doacao.recebedor.email }}</p>
+                        </div>
+                        {% endif %}
+                        {% if doacao.recebedor.telefone %}
+                        <div class="col-sm-6">
+                            <p class="text-muted mb-1">Telefone</p>
+                            <p class="fw-bold">{{ doacao.recebedor.telefone }}</p>
+                        </div>
+                        {% endif %}
+                        {% if doacao.recebedor.endereco %}
+                        <div class="col-12">
+                            <p class="text-muted mb-1">Endereço</p>
+                            <p class="fw-bold">{{ doacao.recebedor.endereco }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card de Informações da Doação -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">
+                        <i class="fas fa-info-circle me-2 text-primary"></i>Informações da Doação
+                    </h5>
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <p class="text-muted mb-1">Data da Doação</p>
+                            <p class="fw-bold">{{ doacao.data|date:"d/m/Y H:i" }}</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <p class="text-muted mb-1">Status</p>
+                            <span class="badge bg-success">Concluída</span>
+                        </div>
+                        {% if doacao.observacoes %}
+                        <div class="col-12">
+                            <p class="text-muted mb-1">Observações</p>
+                            <p class="fw-bold">{{ doacao.observacoes }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

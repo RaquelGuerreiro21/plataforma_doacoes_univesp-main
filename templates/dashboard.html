@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Sistema de Doações{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h3 mb-2">Dashboard</h2>
+            <p class="text-muted mb-0">Visão geral do sistema</p>
+        </div>
+        <a href="{% url 'doacao_wizard' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Nova Doação
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <!-- Card de Doações -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0">
+                            <div class="avatar-circle bg-primary bg-opacity-10 text-primary">
+                                <i class="fas fa-hand-holding-heart"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="card-title mb-0">Doações</h6>
+                            <small class="text-muted">Total de doações</small>
+                        </div>
+                    </div>
+                    <h3 class="mb-0">{{ total_doacoes }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card de Doadores -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0">
+                            <div class="avatar-circle bg-success bg-opacity-10 text-success">
+                                <i class="fas fa-user-friends"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="card-title mb-0">Doadores</h6>
+                            <small class="text-muted">Total de doadores</small>
+                        </div>
+                    </div>
+                    <h3 class="mb-0">{{ total_doadores }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card de Recebedores -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0">
+                            <div class="avatar-circle bg-info bg-opacity-10 text-info">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="card-title mb-0">Recebedores</h6>
+                            <small class="text-muted">Total de recebedores</small>
+                        </div>
+                    </div>
+                    <h3 class="mb-0">{{ total_recebedores }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card de Itens -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0">
+                            <div class="avatar-circle bg-warning bg-opacity-10 text-warning">
+                                <i class="fas fa-box-open"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="card-title mb-0">Itens</h6>
+                            <small class="text-muted">Total de itens</small>
+                        </div>
+                    </div>
+                    <h3 class="mb-0">{{ total_itens }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_head %}
+<style>
+    .avatar-circle {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+
+    .card {
+        transition: transform 0.2s;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+    }
+</style>
+{% endblock %}
+{% endblock %} 

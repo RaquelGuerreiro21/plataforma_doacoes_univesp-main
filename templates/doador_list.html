@@ -1,0 +1,318 @@
+{% extends 'base.html' %}
+
+{% block title %}Doadores - Sistema de Doações{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h3 mb-2">Doadores</h2>
+            <p class="text-muted mb-0">Gerenciamento de doadores cadastrados</p>
+        </div>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDoadorModal">
+            <i class="fas fa-plus me-2"></i>Novo Doador
+        </button>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+    <tr>
+      <th>Nome</th>
+                        <th>Contato</th>
+                        <th>Endereço</th>
+                        <th>Data Cadastro</th>
+                        <th>Observações</th>
+                        <th>Ações</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for doador in doadores %}
+      <tr>
+        <td>{{ doador.nome }}</td>
+                        <td>
+                            {% if doador.email %}
+                            <div><i class="fas fa-envelope me-1"></i> {{ doador.email }}</div>
+                            {% endif %}
+                            {% if doador.telefone %}
+                            <div><i class="fas fa-phone me-1"></i> {{ doador.telefone }}</div>
+                            {% endif %}
+                        </td>
+                        <td>{{ doador.endereco|default:"-" }}</td>
+                        <td>{{ doador.data_cadastro|date:"d/m/Y H:i" }}</td>
+                        <td>{{ doador.observacoes|truncatechars:50|default:"-" }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary me-1" onclick="editDoador('{{ doador.id }}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteDoador('{{ doador.id }}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+      </tr>
+    {% empty %}
+      <tr>
+                        <td colspan="6" class="text-center py-4">
+                            <div class="text-muted">
+                                <i class="fas fa-inbox fa-2x mb-3"></i>
+                                <p class="mb-0">Nenhum doador cadastrado</p>
+                            </div>
+                        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Adição de Doador -->
+<div class="modal fade" id="addDoadorModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Novo Doador</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addDoadorForm" class="needs-validation" novalidate>
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nome" class="form-label">Nome *</label>
+                        <input type="text" class="form-control" id="nome" name="nome" required>
+                        <div class="invalid-feedback">
+                            Por favor, informe o nome do doador.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">E-mail</label>
+                        <input type="email" class="form-control" id="email" name="email">
+                        <div class="invalid-feedback">
+                            Por favor, informe um e-mail válido.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="telefone" class="form-label">Telefone</label>
+                        <input type="tel" class="form-control" id="telefone" name="telefone">
+                        <div class="invalid-feedback">
+                            Por favor, informe um telefone válido.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="endereco" class="form-label">Endereço</label>
+                        <input type="text" class="form-control" id="endereco" name="endereco">
+                    </div>
+                    <div class="mb-3">
+                        <label for="observacoes" class="form-label">Observações</label>
+                        <textarea class="form-control" id="observacoes" name="observacoes" rows="3"></textarea>
+                    </div>
+                    <small class="text-muted">* Campos obrigatórios</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnSalvarDoador">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Doador -->
+<div class="modal fade" id="editDoadorModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Doador</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editDoadorForm" class="needs-validation" novalidate>
+                {% csrf_token %}
+                <input type="hidden" id="edit_doador_id" name="doador_id">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="edit_nome" class="form-label">Nome *</label>
+                        <input type="text" class="form-control" id="edit_nome" name="nome" required>
+                        <div class="invalid-feedback">
+                            Por favor, informe o nome do doador.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_email" class="form-label">E-mail</label>
+                        <input type="email" class="form-control" id="edit_email" name="email">
+                        <div class="invalid-feedback">
+                            Por favor, informe um e-mail válido.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_telefone" class="form-label">Telefone</label>
+                        <input type="tel" class="form-control" id="edit_telefone" name="telefone">
+                        <div class="invalid-feedback">
+                            Por favor, informe um telefone válido.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_endereco" class="form-label">Endereço</label>
+                        <input type="text" class="form-control" id="edit_endereco" name="endereco">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_observacoes" class="form-label">Observações</label>
+                        <textarea class="form-control" id="edit_observacoes" name="observacoes" rows="3"></textarea>
+                    </div>
+                    <small class="text-muted">* Campos obrigatórios</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnSalvarEdicaoDoador">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+    .avatar-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+    }
+
+    .table th {
+        font-weight: 600;
+        font-size: 0.9em;
+    }
+
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+    }
+</style>
+
+<script>
+function validateDoadorForm(form) {
+    const nome = form.querySelector('[name="nome"]').value.trim();
+    const email = form.querySelector('[name="email"]').value.trim();
+    const telefone = form.querySelector('[name="telefone"]').value.trim();
+    
+    if (!nome) {
+        alert('O nome do doador é obrigatório.');
+        return false;
+    }
+    
+    if (!email && !telefone) {
+        alert('É necessário fornecer pelo menos um contato (email ou telefone).');
+        return false;
+    }
+    
+    return true;
+}
+
+function editDoador(id) {
+    fetch(`/api/doadores/${id}/`)
+        .then(response => response.json())
+        .then(doador => {
+            document.getElementById('edit_doador_id').value = doador.id;
+            document.getElementById('edit_nome').value = doador.nome;
+            document.getElementById('edit_email').value = doador.email || '';
+            document.getElementById('edit_telefone').value = doador.telefone || '';
+            document.getElementById('edit_endereco').value = doador.endereco || '';
+            document.getElementById('edit_observacoes').value = doador.observacoes || '';
+            new bootstrap.Modal(document.getElementById('editDoadorModal')).show();
+        });
+}
+
+function deleteDoador(id) {
+    if (confirm('Tem certeza que deseja excluir este doador?')) {
+        fetch(`/api/doadores/${id}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        }).then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('Erro ao excluir doador');
+            }
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const addForm = document.getElementById('addDoadorForm');
+    const editForm = document.getElementById('editDoadorForm');
+    const btnSalvarDoador = document.getElementById('btnSalvarDoador');
+    const btnSalvarEdicaoDoador = document.getElementById('btnSalvarEdicaoDoador');
+
+    addForm.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        if (!validateDoadorForm(this)) {
+            return;
+        }
+
+        btnSalvarDoador.disabled = true;
+        const formData = new FormData(this);
+
+        try {
+            const response = await fetch('/api/doadores/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: formData
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                const data = await response.json();
+                alert(data.error || 'Erro ao criar doador');
+            }
+        } catch (error) {
+            alert('Erro ao processar a requisição');
+        } finally {
+            btnSalvarDoador.disabled = false;
+        }
+    });
+
+    editForm.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        if (!validateDoadorForm(this)) {
+            return;
+        }
+
+        btnSalvarEdicaoDoador.disabled = true;
+        const formData = new FormData(this);
+        const doadorId = document.getElementById('edit_doador_id').value;
+
+        try {
+            const response = await fetch(`/api/doadores/${doadorId}/`, {
+                method: 'PATCH',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: formData
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                const data = await response.json();
+                alert(data.error || 'Erro ao atualizar doador');
+            }
+        } catch (error) {
+            alert('Erro ao processar a requisição');
+        } finally {
+            btnSalvarEdicaoDoador.disabled = false;
+        }
+    });
+});
+</script>
+{% endblock %}

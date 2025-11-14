@@ -1,0 +1,331 @@
+{% extends 'base.html' %}
+
+{% block title %}Recebedores - Sistema de Doações{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h3 mb-2">Recebedores</h2>
+            <p class="text-muted mb-0">Gerenciamento de recebedores cadastrados</p>
+        </div>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addRecebedorModal">
+            <i class="fas fa-plus me-2"></i>Novo Recebedor
+        </button>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+    <tr>
+      <th>Nome</th>
+                        <th>Contato</th>
+                        <th>Endereço</th>
+                        <th>Data Cadastro</th>
+                        <th>Observações</th>
+                        <th>Ações</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for recebedor in recebedores %}
+      <tr>
+        <td>{{ recebedor.nome }}</td>
+                        <td>
+                            {% if recebedor.email %}
+                            <div><i class="fas fa-envelope me-1"></i> {{ recebedor.email }}</div>
+                            {% endif %}
+                            {% if recebedor.telefone %}
+                            <div><i class="fas fa-phone me-1"></i> {{ recebedor.telefone }}</div>
+                            {% endif %}
+                        </td>
+                        <td>{{ recebedor.endereco|default:"-" }}</td>
+                        <td>{{ recebedor.data_cadastro|date:"d/m/Y H:i" }}</td>
+                        <td>{{ recebedor.observacoes|truncatechars:50|default:"-" }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary me-1" onclick="editRecebedor('{{ recebedor.id }}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteRecebedor('{{ recebedor.id }}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+      </tr>
+    {% empty %}
+      <tr>
+                        <td colspan="6" class="text-center py-4">
+                            <div class="text-muted">
+                                <i class="fas fa-inbox fa-2x mb-3"></i>
+                                <p class="mb-0">Nenhum recebedor cadastrado</p>
+                            </div>
+                        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Adição de Recebedor -->
+<div class="modal fade" id="addRecebedorModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Novo Recebedor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addRecebedorForm" class="needs-validation" novalidate>
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nome" class="form-label">Nome *</label>
+                        <input type="text" class="form-control" id="nome" name="nome" required>
+                        <div class="invalid-feedback">
+                            Por favor, informe o nome do recebedor.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">E-mail</label>
+                        <input type="email" class="form-control" id="email" name="email">
+                        <div class="invalid-feedback">
+                            Por favor, informe um e-mail válido.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="telefone" class="form-label">Telefone</label>
+                        <input type="tel" class="form-control" id="telefone" name="telefone">
+                        <div class="invalid-feedback">
+                            Por favor, informe um telefone válido.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="endereco" class="form-label">Endereço</label>
+                        <input type="text" class="form-control" id="endereco" name="endereco">
+                    </div>
+                    <div class="mb-3">
+                        <label for="observacoes" class="form-label">Observações</label>
+                        <textarea class="form-control" id="observacoes" name="observacoes" rows="3"></textarea>
+                    </div>
+                    <small class="text-muted">* Campos obrigatórios</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnSalvarRecebedor">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Recebedor -->
+<div class="modal fade" id="editRecebedorModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Recebedor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editRecebedorForm" class="needs-validation" novalidate>
+                {% csrf_token %}
+                <input type="hidden" id="edit_recebedor_id">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="edit_nome" class="form-label">Nome *</label>
+                        <input type="text" class="form-control" id="edit_nome" name="nome" required>
+                        <div class="invalid-feedback">
+                            Por favor, informe o nome do recebedor.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_email" class="form-label">E-mail</label>
+                        <input type="email" class="form-control" id="edit_email" name="email">
+                        <div class="invalid-feedback">
+                            Por favor, informe um e-mail válido.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_telefone" class="form-label">Telefone</label>
+                        <input type="tel" class="form-control" id="edit_telefone" name="telefone">
+                        <div class="invalid-feedback">
+                            Por favor, informe um telefone válido.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_endereco" class="form-label">Endereço</label>
+                        <input type="text" class="form-control" id="edit_endereco" name="endereco">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_observacoes" class="form-label">Observações</label>
+                        <textarea class="form-control" id="edit_observacoes" name="observacoes" rows="3"></textarea>
+                    </div>
+                    <small class="text-muted">* Campos obrigatórios</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnSalvarEdicaoRecebedor">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+    .avatar-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+    }
+    .table th {
+        font-weight: 600;
+        font-size: 0.9em;
+    }
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+    }
+</style>
+<script>
+function editRecebedor(id) {
+    fetch(`/api/recebedores/${id}/`)
+        .then(response => response.json())
+        .then(recebedor => {
+            document.getElementById('edit_recebedor_id').value = recebedor.id;
+            document.getElementById('edit_nome').value = recebedor.nome;
+            document.getElementById('edit_email').value = recebedor.email || '';
+            document.getElementById('edit_telefone').value = recebedor.telefone || '';
+            document.getElementById('edit_endereco').value = recebedor.endereco || '';
+            document.getElementById('edit_observacoes').value = recebedor.observacoes || '';
+            new bootstrap.Modal(document.getElementById('editRecebedorModal')).show();
+        });
+}
+
+function deleteRecebedor(id) {
+    if (confirm('Tem certeza que deseja excluir este recebedor?')) {
+        fetch(`/api/recebedores/${id}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        }).then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('Erro ao excluir recebedor');
+            }
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const addForm = document.getElementById('addRecebedorForm');
+    const editForm = document.getElementById('editRecebedorForm');
+    const btnSalvarRecebedor = document.getElementById('btnSalvarRecebedor');
+    const btnSalvarEdicaoRecebedor = document.getElementById('btnSalvarEdicaoRecebedor');
+
+    // Função para validar formulário
+    function validateForm(form) {
+        if (!form.checkValidity()) {
+            form.classList.add('was-validated');
+            return false;
+        }
+
+        // Validação personalizada: pelo menos um contato (email ou telefone)
+        const email = form.querySelector('[name="email"]').value.trim();
+        const telefone = form.querySelector('[name="telefone"]').value.trim();
+        
+        if (!email && !telefone) {
+            alert('É necessário fornecer pelo menos um contato (email ou telefone)');
+            return false;
+        }
+
+        return true;
+    }
+
+    // Função para limpar validação
+    function clearValidation(form) {
+        form.classList.remove('was-validated');
+    }
+
+    addForm.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        if (!validateForm(this)) {
+            return;
+        }
+
+        btnSalvarRecebedor.disabled = true;
+        const formData = new FormData(this);
+
+        try {
+            const response = await fetch('/api/recebedores/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: formData
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                const data = await response.json();
+                alert(data.error || 'Erro ao criar recebedor');
+            }
+        } catch (error) {
+            alert('Erro ao processar a requisição');
+        } finally {
+            btnSalvarRecebedor.disabled = false;
+        }
+    });
+
+    editForm.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        if (!validateForm(this)) {
+            return;
+        }
+
+        btnSalvarEdicaoRecebedor.disabled = true;
+        const formData = new FormData(this);
+        const recebedorId = document.getElementById('edit_recebedor_id').value;
+
+        try {
+            const response = await fetch(`/api/recebedores/${recebedorId}/`, {
+                method: 'PATCH',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: formData
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                const data = await response.json();
+                alert(data.error || 'Erro ao atualizar recebedor');
+            }
+        } catch (error) {
+            alert('Erro ao processar a requisição');
+        } finally {
+            btnSalvarEdicaoRecebedor.disabled = false;
+        }
+    });
+
+    // Limpar validação ao fechar os modais
+    document.getElementById('addRecebedorModal').addEventListener('hidden.bs.modal', function () {
+        clearValidation(addForm);
+        addForm.reset();
+    });
+
+    document.getElementById('editRecebedorModal').addEventListener('hidden.bs.modal', function () {
+        clearValidation(editForm);
+    });
+});
+</script>
+{% endblock %}

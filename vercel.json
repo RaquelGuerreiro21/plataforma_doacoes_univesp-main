@@ -1,0 +1,28 @@
+{
+    "version": 2,
+    "builds": [
+        {
+            "src": "doacoes/wsgi.py",
+            "use": "@vercel/python",
+            "config": {
+                "runtime": "python3.12",
+                "maxLambdaSize": "15mb"
+            }
+        }
+    ],
+    "routes": [
+        {
+            "src": "/static/(.*)",
+            "dest": "/static/$1"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "doacoes/wsgi.py"
+        }
+    ],
+    "env": {
+        "DJANGO_SETTINGS_MODULE": "doacoes.settings",
+        "PYTHONPATH": ".",
+        "DISABLE_COLLECTSTATIC": "1"
+    }
+} 

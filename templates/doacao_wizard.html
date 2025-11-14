@@ -1,0 +1,665 @@
+{% extends 'base.html' %}
+
+{% block title %}Nova Doação - Sistema de Doações{% endblock %}
+
+{% block extra_head %}
+<style>
+    .wizard-container {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
+        margin-top: 2rem;
+        overflow: hidden;
+    }
+
+    .wizard-header {
+        padding: 2rem 3rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .wizard-steps {
+        display: flex;
+        justify-content: space-between;
+        position: relative;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .wizard-steps::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50px;
+        right: 50px;
+        height: 3px;
+        background: #e9ecef;
+        z-index: 0;
+        transform: translateY(-50%);
+    }
+
+    .step {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+        padding: 0;
+        width: 120px;
+    }
+
+    .step-number {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: #f8f9fa;
+        border: 3px solid #e9ecef;
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 0.75rem;
+        font-size: 1.25rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .step.active .step-number {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: white;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    }
+
+    .step.completed .step-number {
+        background: var(--secondary-color);
+        border-color: var(--secondary-color);
+        color: white;
+    }
+
+    .step-title {
+        font-size: 0.95rem;
+        color: #6c757d;
+        margin: 0;
+        font-weight: 500;
+        line-height: 1.2;
+    }
+
+    .step.active .step-title {
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+
+    .step.completed .step-title {
+        color: var(--secondary-color);
+    }
+
+    .wizard-content {
+        padding: 2rem 3rem;
+        min-height: 400px;
+    }
+
+    .form-step {
+        display: none;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .form-step.active {
+        display: block;
+        animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .preview-card {
+        background: #f8f9fa;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        border: 1px solid #e9ecef;
+    }
+
+    .preview-card h6 {
+        color: #6c757d;
+        margin-bottom: 0.75rem;
+        font-size: 1rem;
+    }
+
+    .preview-card p {
+        margin-bottom: 0.5rem;
+        color: #495057;
+    }
+
+    .wizard-footer {
+        padding: 1.5rem 3rem;
+        border-top: 1px solid #e9ecef;
+    }
+
+    .wizard-footer .btn {
+        min-width: 120px;
+    }
+
+    @media (max-width: 768px) {
+        .wizard-header {
+            padding: 1.5rem;
+        }
+
+        .wizard-steps::before {
+            left: 30px;
+            right: 30px;
+        }
+
+        .step {
+            width: 80px;
+        }
+
+        .step-number {
+            width: 50px;
+            height: 50px;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-title {
+            font-size: 0.8rem;
+        }
+
+        .wizard-content {
+            padding: 1.5rem;
+        }
+
+        .wizard-footer {
+            padding: 1.5rem;
+        }
+
+        .preview-card {
+            padding: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="wizard-container">
+                <div class="wizard-header">
+                    <!-- Passos do Wizard -->
+                    <div class="wizard-steps">
+                        <div class="step active" data-step="1">
+                            <div class="step-number">1</div>
+                            <p class="step-title">Tipo de Doação</p>
+                        </div>
+                        <div class="step" data-step="2">
+                            <div class="step-number">2</div>
+                            <p class="step-title">Doador</p>
+                        </div>
+                        <div class="step" data-step="3">
+                            <div class="step-number">3</div>
+                            <p class="step-title">Detalhes</p>
+                        </div>
+                        <div class="step" data-step="4">
+                            <div class="step-number">4</div>
+                            <p class="step-title">Confirmação</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conteúdo do Wizard -->
+                <form id="doacaoWizardForm">
+                    {% csrf_token %}
+                    <div class="wizard-content">
+                        <!-- Passo 1: Tipo de Doação -->
+                        <div class="form-step active" data-step="1">
+                            <h4 class="mb-4">Tipo de Doação</h4>
+                            <div class="row justify-content-center">
+                                <div class="col-md-6">
+                                    <div class="card mb-3">
+                                        <div class="card-body">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="tipo_doacao" id="tipo_item" value="item" checked>
+                                                <label class="form-check-label" for="tipo_item">
+                                                    <h5 class="mb-2">Item Físico</h5>
+                                                    <p class="text-muted mb-0">Doar roupas, móveis, alimentos, etc.</p>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="tipo_doacao" id="tipo_dinheiro" value="dinheiro">
+                                                <label class="form-check-label" for="tipo_dinheiro">
+                                                    <h5 class="mb-2">Doação em Dinheiro</h5>
+                                                    <p class="text-muted mb-0">Contribuir com um valor monetário</p>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Passo 2: Registro do Doador -->
+                        <div class="form-step" data-step="2">
+                            <h4 class="mb-4">Registro do Doador</h4>
+                            <div class="mb-4">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="doador_tipo" id="doador_novo" value="novo" checked>
+                                    <label class="form-check-label" for="doador_novo">
+                                        Novo Doador
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="doador_tipo" id="doador_existente" value="existente">
+                                    <label class="form-check-label" for="doador_existente">
+                                        Doador Existente
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Formulário para Novo Doador -->
+                            <div id="form_novo_doador">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="doador_nome" class="form-label">Nome do Doador *</label>
+                                        <input type="text" class="form-control" id="doador_nome" name="doador_nome" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="doador_email" class="form-label">E-mail</label>
+                                        <input type="email" class="form-control" id="doador_email" name="doador_email">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="doador_telefone" class="form-label">Telefone</label>
+                                        <input type="tel" class="form-control" id="doador_telefone" name="doador_telefone">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="doador_endereco" class="form-label">Endereço</label>
+                                        <input type="text" class="form-control" id="doador_endereco" name="doador_endereco">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Seleção de Doador Existente -->
+                            <div id="form_doador_existente" style="display: none;">
+                                <div class="mb-3">
+                                    <label for="doador_id" class="form-label">Selecione o Doador *</label>
+                                    <select class="form-select" id="doador_id" name="doador_id">
+                                        <option value="">Selecione um doador</option>
+                                        {% for doador in doadores %}
+                                        <option value="{{ doador.id }}">{{ doador.nome }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Passo 3: Detalhes da Doação -->
+                        <div class="form-step" data-step="3">
+                            <!-- Detalhes do Item (mostrado quando tipo_doacao = item) -->
+                            <div id="form_item" style="display: none;">
+                                <h4 class="mb-4">Detalhes do Item</h4>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="item_nome" class="form-label">Nome do Item *</label>
+                                        <input type="text" class="form-control" id="item_nome" name="item_nome">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="item_tipo" class="form-label">Tipo *</label>
+                                        <select class="form-select" id="item_tipo" name="item_tipo">
+                                            <option value="">Selecione o tipo</option>
+                                            {% for tipo, nome in tipos_item %}
+                                            <option value="{{ tipo }}">{{ nome }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="item_descricao" class="form-label">Descrição</label>
+                                    <textarea class="form-control" id="item_descricao" name="item_descricao" rows="3"></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="item_foto" class="form-label">Foto do Item</label>
+                                    <input type="file" class="form-control" id="item_foto" name="item_foto" accept="image/*">
+                                </div>
+                            </div>
+
+                            <!-- Detalhes da Doação em Dinheiro (mostrado quando tipo_doacao = dinheiro) -->
+                            <div id="form_dinheiro" style="display: none;">
+                                <h4 class="mb-4">Detalhes da Doação em Dinheiro</h4>
+                                <div class="mb-3">
+                                    <label for="valor" class="form-label">Valor da Doação (R$) *</label>
+                                    <input type="number" class="form-control" id="valor" name="valor" step="0.01" min="0.01">
+                                    <div class="form-text">Informe o valor da doação em reais</div>
+                                </div>
+                            </div>
+
+                            <!-- Seleção de Recebedor (comum para ambos os tipos) -->
+                            <div class="mt-4">
+                                <h5 class="mb-3">Recebedor</h5>
+                                <div class="mb-4">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" name="recebedor_tipo" id="recebedor_novo" value="novo" checked>
+                                        <label class="form-check-label" for="recebedor_novo">
+                                            Novo Recebedor
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="recebedor_tipo" id="recebedor_existente" value="existente">
+                                        <label class="form-check-label" for="recebedor_existente">
+                                            Recebedor Existente
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Formulário para Novo Recebedor -->
+                                <div id="form_novo_recebedor">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="recebedor_nome" class="form-label">Nome do Recebedor *</label>
+                                            <input type="text" class="form-control" id="recebedor_nome" name="recebedor_nome">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="recebedor_email" class="form-label">E-mail</label>
+                                            <input type="email" class="form-control" id="recebedor_email" name="recebedor_email">
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="recebedor_telefone" class="form-label">Telefone</label>
+                                            <input type="tel" class="form-control" id="recebedor_telefone" name="recebedor_telefone">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="recebedor_endereco" class="form-label">Endereço</label>
+                                            <input type="text" class="form-control" id="recebedor_endereco" name="recebedor_endereco">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Seleção de Recebedor Existente -->
+                                <div id="form_recebedor_existente" style="display: none;">
+                                    <div class="mb-3">
+                                        <label for="recebedor_id" class="form-label">Selecione o Recebedor *</label>
+                                        <select class="form-select" id="recebedor_id" name="recebedor_id">
+                                            <option value="">Selecione um recebedor</option>
+                                            {% for recebedor in recebedores %}
+                                            <option value="{{ recebedor.id }}">{{ recebedor.nome }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Passo 4: Confirmação -->
+                        <div class="form-step" data-step="4">
+                            <h4 class="mb-4">Confirmação da Doação</h4>
+                            <div id="preview_doacao" class="preview-card">
+                                <!-- Será preenchido via JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="wizard-footer">
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-secondary" id="prevStep" style="display: none;">Voltar</button>
+                            <button type="button" class="btn btn-primary" id="nextStep">Próximo</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('doacaoWizardForm');
+    const steps = document.querySelectorAll('.form-step');
+    const stepIndicators = document.querySelectorAll('.step');
+    const prevButton = document.getElementById('prevStep');
+    const nextButton = document.getElementById('nextStep');
+    let currentStep = 1;
+
+    // Controle de visibilidade dos formulários de doador
+    document.querySelectorAll('input[name="doador_tipo"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            document.getElementById('form_novo_doador').style.display = 
+                this.value === 'novo' ? 'block' : 'none';
+            document.getElementById('form_doador_existente').style.display = 
+                this.value === 'existente' ? 'block' : 'none';
+        });
+    });
+
+    // Controle de visibilidade dos formulários de recebedor
+    document.querySelectorAll('input[name="recebedor_tipo"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            document.getElementById('form_novo_recebedor').style.display = 
+                this.value === 'novo' ? 'block' : 'none';
+            document.getElementById('form_recebedor_existente').style.display = 
+                this.value === 'existente' ? 'block' : 'none';
+        });
+    });
+
+    // Controle de visibilidade dos formulários de tipo de doação
+    document.querySelectorAll('input[name="tipo_doacao"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            document.getElementById('form_item').style.display = 
+                this.value === 'item' ? 'block' : 'none';
+            document.getElementById('form_dinheiro').style.display = 
+                this.value === 'dinheiro' ? 'block' : 'none';
+
+            // Atualiza os campos required
+            const itemFields = ['item_nome', 'item_tipo'];
+            const dinheiroFields = ['valor'];
+
+            itemFields.forEach(field => {
+                document.getElementById(field).required = (this.value === 'item');
+            });
+
+            dinheiroFields.forEach(field => {
+                document.getElementById(field).required = (this.value === 'dinheiro');
+            });
+        });
+    });
+
+    function updateStep(direction) {
+        const newStep = currentStep + direction;
+        if (newStep < 1 || newStep > steps.length) return;
+
+        if (direction > 0 && !validateStep(currentStep)) return;
+
+        steps[currentStep - 1].classList.remove('active');
+        stepIndicators[currentStep - 1].classList.remove('active');
+        stepIndicators[currentStep - 1].classList.add('completed');
+
+        steps[newStep - 1].classList.add('active');
+        stepIndicators[newStep - 1].classList.add('active');
+
+        currentStep = newStep;
+
+        prevButton.style.display = currentStep === 1 ? 'none' : 'block';
+        nextButton.textContent = currentStep === steps.length ? 'Confirmar' : 'Próximo';
+
+        if (currentStep === steps.length) {
+            updatePreview();
+        }
+    }
+
+    function validateStep(step) {
+        const currentForm = steps[step - 1];
+        let valid = true;
+
+        if (step === 2) {
+            // Validação específica para o passo do doador
+            const doadorTipo = document.querySelector('input[name="doador_tipo"]:checked').value;
+            
+            if (doadorTipo === 'existente') {
+                const doadorId = document.getElementById('doador_id');
+                if (!doadorId.value) {
+                    valid = false;
+                    doadorId.classList.add('is-invalid');
+                } else {
+                    doadorId.classList.remove('is-invalid');
+                }
+            } else {
+                // Validação para novo doador
+                const doadorNome = document.getElementById('doador_nome');
+                if (!doadorNome.value) {
+                    valid = false;
+                    doadorNome.classList.add('is-invalid');
+                } else {
+                    doadorNome.classList.remove('is-invalid');
+                }
+            }
+            return valid;
+        }
+
+        if (step === 3) {
+            // Validação específica para o passo de detalhes
+            const tipoDoacaoValue = document.querySelector('input[name="tipo_doacao"]:checked').value;
+            
+            if (tipoDoacaoValue === 'dinheiro') {
+                const valorField = document.getElementById('valor');
+                if (!valorField.value || parseFloat(valorField.value) <= 0) {
+                    valid = false;
+                    valorField.classList.add('is-invalid');
+                } else {
+                    valorField.classList.remove('is-invalid');
+                }
+            } else {
+                const itemNome = document.getElementById('item_nome');
+                const itemTipo = document.getElementById('item_tipo');
+                if (!itemNome.value || !itemTipo.value) {
+                    valid = false;
+                    if (!itemNome.value) itemNome.classList.add('is-invalid');
+                    if (!itemTipo.value) itemTipo.classList.add('is-invalid');
+                } else {
+                    itemNome.classList.remove('is-invalid');
+                    itemTipo.classList.remove('is-invalid');
+                }
+            }
+            return valid;
+        }
+
+        // Para outros passos, valida campos required normalmente
+        const requiredFields = currentForm.querySelectorAll('[required]');
+        requiredFields.forEach(field => {
+            if (!field.value) {
+                valid = false;
+                field.classList.add('is-invalid');
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+
+        return valid;
+    }
+
+    function updatePreview() {
+        const tipoDoacaoValue = document.querySelector('input[name="tipo_doacao"]:checked').value;
+        const doadorTipo = document.querySelector('input[name="doador_tipo"]:checked').value;
+        const recebedorTipo = document.querySelector('input[name="recebedor_tipo"]:checked').value;
+
+        let previewHtml = '<h6>Resumo da Doação</h6>';
+
+        // Informações do tipo de doação
+        if (tipoDoacaoValue === 'dinheiro') {
+            const valor = document.getElementById('valor').value;
+            previewHtml += `
+                <p><strong>Tipo de Doação:</strong> Doação em Dinheiro</p>
+                <p><strong>Valor:</strong> R$ ${parseFloat(valor).toFixed(2)}</p>
+            `;
+        } else {
+            const itemNome = document.getElementById('item_nome').value;
+            const itemTipo = document.getElementById('item_tipo');
+            const tipoNome = itemTipo.options[itemTipo.selectedIndex].text;
+            previewHtml += `
+                <p><strong>Tipo de Doação:</strong> Item Físico</p>
+                <p><strong>Item:</strong> ${itemNome}</p>
+                <p><strong>Tipo:</strong> ${tipoNome}</p>
+            `;
+        }
+
+        // Informações do doador
+        if (doadorTipo === 'novo') {
+            previewHtml += `
+                <h6 class="mt-3">Dados do Doador</h6>
+                <p><strong>Nome:</strong> ${document.getElementById('doador_nome').value}</p>
+                <p><strong>E-mail:</strong> ${document.getElementById('doador_email').value || 'Não informado'}</p>
+                <p><strong>Telefone:</strong> ${document.getElementById('doador_telefone').value || 'Não informado'}</p>
+            `;
+        } else {
+            const doadorSelect = document.getElementById('doador_id');
+            previewHtml += `
+                <h6 class="mt-3">Doador</h6>
+                <p>${doadorSelect.options[doadorSelect.selectedIndex].text}</p>
+            `;
+        }
+
+        // Informações do recebedor
+        if (recebedorTipo === 'novo') {
+            previewHtml += `
+                <h6 class="mt-3">Dados do Recebedor</h6>
+                <p><strong>Nome:</strong> ${document.getElementById('recebedor_nome').value}</p>
+                <p><strong>E-mail:</strong> ${document.getElementById('recebedor_email').value || 'Não informado'}</p>
+                <p><strong>Telefone:</strong> ${document.getElementById('recebedor_telefone').value || 'Não informado'}</p>
+            `;
+        } else if (document.getElementById('recebedor_id').value) {
+            const recebedorSelect = document.getElementById('recebedor_id');
+            previewHtml += `
+                <h6 class="mt-3">Recebedor</h6>
+                <p>${recebedorSelect.options[recebedorSelect.selectedIndex].text}</p>
+            `;
+        }
+
+        document.getElementById('preview_doacao').innerHTML = previewHtml;
+    }
+
+    prevButton.addEventListener('click', () => updateStep(-1));
+    nextButton.addEventListener('click', () => {
+        if (currentStep === steps.length) {
+            submitForm();
+        } else {
+            updateStep(1);
+        }
+    });
+
+    async function submitForm() {
+        const formData = new FormData(form);
+        nextButton.disabled = true;
+        prevButton.disabled = true;
+
+        try {
+            const response = await fetch('/api/wizard/doacoes/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: formData
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                window.location.href = `/doacoes/${data.id}/`;
+            } else {
+                const errorData = await response.json();
+                alert(errorData.error || 'Erro ao processar a doação');
+            }
+        } catch (error) {
+            alert('Erro ao processar a requisição');
+        } finally {
+            nextButton.disabled = false;
+            prevButton.disabled = false;
+        }
+    }
+
+    // Inicialização
+    document.querySelector('input[name="tipo_doacao"]:checked').dispatchEvent(new Event('change'));
+});
+</script>
+{% endblock %} 

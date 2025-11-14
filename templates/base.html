@@ -1,0 +1,368 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Sistema de Doações{% endblock %}</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+:root {
+  --primary-color: #eaad7c;
+  --secondary-color: #6295a4;
+  --tertiary-color: #d0b89d;
+  --background-color: #f8f9fa;
+  --text-color: #2b2b2b;
+}
+
+/* ------------------------ */
+/* Fixar footer no final    */
+/* ------------------------ */
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  font-family: 'Poppins', sans-serif;
+  background: 
+    linear-gradient(rgba(255,255,255,0.75), rgba(255,255,255,0.75)),
+    url("{% static 'igreja.jpeg' %}") center/cover no-repeat;
+  color: var(--text-color);
+}
+
+/* Faz a área principal empurrar o footer para baixo */
+main {
+  flex: 1;
+}
+
+/* ------------------------ */
+/* Navbar                   */
+/* ------------------------ */
+.navbar {
+  background-color: rgba(234, 173, 124, 0.92) !important;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.navbar-brand {
+  color: #000000 !important;
+  font-weight: 600;
+  font-size: 1.25rem;
+}
+
+.nav-link {
+  font-weight: 500;
+  color: #000000 !important;
+  opacity: 0.85;
+  transition: .2s;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  opacity: 1;
+  color: #000000 !important;
+}
+
+/* ------------------------ */
+/* Botões                   */
+/* ------------------------ */
+.btn-primary {
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
+}
+
+.btn-primary:hover {
+  background-color: #477e8a;
+  border-color: #477e8a;
+}
+
+.btn {
+  border-radius: 8px;
+  padding: 0.5rem 1.4rem;
+  font-weight: 500;
+}
+
+/* ------------------------ */
+/* Container e Cards        */
+/* ------------------------ */
+.section-box,
+.card {
+  background: rgba(255,255,255,0.93);
+  border-radius: 14px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.card {
+  border: none;
+  transition: transform .25s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}
+
+/* ------------------------ */
+/* Footer ajustado          */
+/* ------------------------ */
+footer.footer {
+  background: rgba(208,184,157,0.88);
+  backdrop-filter: blur(4px);
+  color: #2b2b2b;
+  padding: 1.2rem 0;    /* REDUZIDO – antes era 2rem */
+  margin-top: 2rem;     /* Dá espaço sem invadir o conteúdo */
+}
+
+.footer a {
+  color: #333;
+  text-decoration: none;
+  transition: .2s;
+}
+
+.footer a:hover {
+  color: #000;
+}
+
+/* ------------------------ */
+/* Wizard                   */
+/* ------------------------ */
+.wizard-steps {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.wizard-steps::before {
+  content: '';
+  position: absolute;
+  top: 24px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #e9ecef;
+}
+
+.step {
+  position: relative;
+  background: transparent;
+  text-align: center;
+  flex: 1;
+}
+
+.step-number {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #e9ecef;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto .5rem;
+  font-weight: 600;
+  transition: .3s;
+}
+
+.step.active .step-number {
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.step.completed .step-number {
+  background: var(--secondary-color);
+  color: #fff;
+}
+
+.step-title {
+  font-size: .9rem;
+  color: #6c757d;
+}
+
+.step.active .step-title {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.step.completed .step-title {
+  color: var(--secondary-color);
+}
+
+/* ------------------------ */
+/* Responsividade           */
+/* ------------------------ */
+@media (max-width: 768px) {
+  .navbar-brand { font-size: 1.1rem; }
+  .section-box, .card {
+    padding: 1rem;
+  }
+}
+</style>
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  {% if user.is_authenticated %}
+  <nav class="navbar navbar-expand-lg navbar-light bg-white">
+    <div class="container">
+      <a class="navbar-brand" href="{% url 'dashboard' %}">
+        <i class="fas fa-hand-holding-heart me-2"></i>
+        Sistema de Doações
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          {% if user.role == 'ADMIN' %}
+          <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'user_list' %}active{% endif %}" href="{% url 'user_list' %}">
+              <i class="fas fa-users me-1"></i> Usuários
+            </a>
+          </li>
+          {% endif %}
+          <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'doador_list' %}active{% endif %}" href="{% url 'doador_list' %}">
+              <i class="fas fa-hands-helping me-1"></i> Doadores
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'recebedor_list' %}active{% endif %}" href="{% url 'recebedor_list' %}">
+              <i class="fas fa-user-friends me-1"></i> Recebedores
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'item_list' %}active{% endif %}" href="{% url 'item_list' %}">
+              <i class="fas fa-box-open me-1"></i> Itens
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'doacao_list' %}active{% endif %}" href="{% url 'doacao_list' %}">
+              <i class="fas fa-gift me-1"></i> Doações
+            </a>
+          </li>
+        </ul>
+        
+        <div class="d-flex align-items-center">
+          <a href="{% url 'doacao_wizard' %}" class="btn btn-primary me-3">
+            <i class="fas fa-plus me-2"></i>Nova Doação
+          </a>
+          <div class="vr me-3"></div>
+          <div class="dropdown">
+            <button class="btn btn-link nav-link dropdown-toggle" type="button" id="userMenu" data-bs-toggle="dropdown">
+              <i class="fas fa-user-circle me-2"></i>{{ request.user.nome_completo }}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="{% url 'logout' %}">Sair</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+  {% endif %}
+
+  <main>
+    {% if messages %}
+    <div class="container mt-3">
+      {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6">
+          <h5>Sobre o Sistema</h5>
+          <p>Uma plataforma para gerenciamento de doações, conectando pessoas que precisam com aquelas que podem ajudar.</p>
+        </div>
+        <div class="col-md-6">
+          <h5>Contato</h5>
+          <p>
+            <i class="fas fa-envelope me-2"></i>contato@sistemadoacoes.com<br>
+            <i class="fas fa-phone me-2"></i>(11) 1234-5678
+          </p>
+        </div>
+      </div>
+      <div class="row mt-4">
+        <div class="col-12 text-center">
+          <p class="mb-0">&copy; 2024 Sistema de Doações. Todos os direitos reservados.</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- CSRF Token para requisições AJAX -->
+  <script>
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+      const csrftoken = getCookie('csrftoken');
+      if (csrftoken) {
+        const oldXHROpen = window.XMLHttpRequest.prototype.open;
+        window.XMLHttpRequest.prototype.open = function(method, url) {
+          const xhr = this;
+          oldXHROpen.apply(xhr, arguments);
+          if (method.toUpperCase() !== 'GET') {
+            xhr.setRequestHeader('X-CSRFToken', csrftoken);
+          }
+        };
+      }
+    });
+  </script>
+
+    <!-- UserWay - Acessibilidade (contraste, fonte, espaçamento) -->
+  <script>
+    (function(d){
+      var s = d.createElement("script");
+      s.setAttribute("data-account", "YOUR_ACCOUNT_ID"); // Troque pelo seu ID do UserWay
+      s.src="https://cdn.userway.org/widget.js";
+      (d.body || d.head).appendChild(s);
+    })(document)
+  </script>
+
+<!-- VLibras - Acessibilidade em Libras -->
+<div vw class="enabled">
+  <div vw-access-button class="active"></div>
+  <div vw-plugin-wrapper>
+    <div class="vw-plugin-top-wrapper"></div>
+  </div>
+</div>
+
+<script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+<script>
+  new window.VLibras.Widget('https://vlibras.gov.br/app');
+</script>
+</body>
+</html>
