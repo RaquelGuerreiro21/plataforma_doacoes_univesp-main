@@ -44,7 +44,14 @@ DEBUG = get_env_value('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = get_env_value('ALLOWED_HOSTS', '').split(',')
 
-
+# Garante hosts mínimos para produção
+ALLOWED_HOSTS = [
+    ".vercel.app",
+    "plataforma-doacoes-univesp.vercel.app",
+    "localhost",
+    "127.0.0.1",
+    os.getenv("VERCEL_URL", "")
+]
 # Application definition
 
 INSTALLED_APPS = [

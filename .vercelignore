@@ -6,7 +6,4 @@ __pycache__
 .gitignore
 .venv
 venv
-*.sqlite3
-media/
-staticfiles/
-node_modules/ 
+node_modules/
