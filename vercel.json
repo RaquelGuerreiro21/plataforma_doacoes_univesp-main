@@ -22,7 +22,6 @@
     ],
     "env": {
         "DJANGO_SETTINGS_MODULE": "doacoes.settings",
-        "PYTHONPATH": ".",
-        "DISABLE_COLLECTSTATIC": "1"
+        "PYTHONPATH": "."
     }
-} 
+}
