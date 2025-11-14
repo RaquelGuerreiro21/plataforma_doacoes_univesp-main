@@ -11,15 +11,15 @@
         }
     ],
     "routes": [
-        {
-            "src": "/static/(.*)",
-            "dest": "/static/$1"
-        },
-        {
-            "src": "/(.*)",
-            "dest": "doacoes/wsgi.py"
-        }
-    ],
+    {
+      "src": "/static/(.*)",
+      "dest": "staticfiles/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "doacoes/wsgi.py"
+    }
+   ],
     "env": {
         "DJANGO_SETTINGS_MODULE": "doacoes.settings",
         "PYTHONPATH": "."
