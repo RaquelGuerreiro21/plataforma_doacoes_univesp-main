@@ -4,12 +4,18 @@
     {
       "src": "doacoes/wsgi.py",
       "use": "@vercel/python",
-      "config": { "runtime": "python3.12", "maxLambdaSize": "15mb" }
+      "config": { "runtime": "python3.12" }
     }
   ],
   "routes": [
-    { "src": "/static/(.*)", "dest": "staticfiles/$1" },
-    { "src": "/(.*)", "dest": "doacoes/wsgi.py" }
+    {
+      "src": "/static/(.*)",
+      "dest": "/staticfiles_build/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "doacoes/wsgi.py"
+    }
   ],
   "env": {
     "DJANGO_SETTINGS_MODULE": "doacoes.settings",

@@ -1,11 +1,5 @@
 #!/bin/bash
-
-# Limpa a pasta staticfiles para garantir arquivos atualizados
-rm -rf staticfiles
-mkdir -p staticfiles
-
-# Coletar arquivos estáticos
+rm -rf staticfiles_build
+mkdir staticfiles_build
 python3 manage.py collectstatic --noinput
-
-# Opcional: mostrar conteúdo para debug
-ls -la staticfiles
+chmod +x vercel_build.sh
