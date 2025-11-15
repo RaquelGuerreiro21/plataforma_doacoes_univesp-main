@@ -239,20 +239,17 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
+# Static files
+STATIC_URL = '/static/'
 
-STATIC_URL = "/static/"
-
-# 👉 Aqui ficam os seus arquivos estáticos ORIGINAIS (os que você edita)
 STATICFILES_DIRS = [
-    BASE_DIR / "static",
+    BASE_DIR / "staticfiles",  # diretório com seus arquivos estáticos
 ]
 
-# 👉 Aqui o Django vai colocar os arquivos processados para produção
-STATIC_ROOT = BASE_DIR / "staticfiles_build"
+STATIC_ROOT = BASE_DIR / "staticfiles_build"  # onde collectstatic vai gerar arquivos
 
-# WhiteNoise para servir estáticos no Vercel
-STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
+# WhiteNoise
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 WHITENOISE_USE_FINDERS = True
 WHITENOISE_MANIFEST_STRICT = False
 WHITENOISE_ALLOW_ALL_ORIGINS = True
