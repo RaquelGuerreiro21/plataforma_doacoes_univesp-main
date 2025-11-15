@@ -1,27 +1,18 @@
 {
-    "version": 2,
-    "builds": [
-        {
-            "src": "doacoes/wsgi.py",
-            "use": "@vercel/python",
-            "config": {
-                "runtime": "python3.12",
-                "maxLambdaSize": "15mb"
-            }
-        }
-    ],
-    "routes": [
+  "version": 2,
+  "builds": [
     {
-      "src": "/static/(.*)",
-      "dest": "staticfiles/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "doacoes/wsgi.py"
+      "src": "doacoes/wsgi.py",
+      "use": "@vercel/python",
+      "config": { "runtime": "python3.12", "maxLambdaSize": "15mb" }
     }
-   ],
-    "env": {
-        "DJANGO_SETTINGS_MODULE": "doacoes.settings",
-        "PYTHONPATH": "."
-    }
+  ],
+  "routes": [
+    { "src": "/static/(.*)", "dest": "staticfiles/$1" },
+    { "src": "/(.*)", "dest": "doacoes/wsgi.py" }
+  ],
+  "env": {
+    "DJANGO_SETTINGS_MODULE": "doacoes.settings",
+    "PYTHONPATH": "."
+  }
 }

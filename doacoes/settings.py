@@ -240,16 +240,19 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_URL = "/static/"
+
+# 👉 Aqui ficam os seus arquivos estáticos ORIGINAIS (os que você edita)
 STATICFILES_DIRS = [
-    BASE_DIR / 'static',
+    BASE_DIR / "static",
 ]
 
-# Configuração do WhiteNoise para a Vercel
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+# 👉 Aqui o Django vai colocar os arquivos processados para produção
+STATIC_ROOT = BASE_DIR / "staticfiles_build"
+
+# WhiteNoise para servir estáticos no Vercel
+STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 WHITENOISE_USE_FINDERS = True
 WHITENOISE_MANIFEST_STRICT = False
 WHITENOISE_ALLOW_ALL_ORIGINS = True
