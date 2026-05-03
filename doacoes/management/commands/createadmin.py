@@ -35,9 +35,9 @@ class Command(BaseCommand):
 
             self.stdout.write(
                 self.style.SUCCESS(f'Usuário administrador criado com sucesso!\n'
-                                 f'Email: {email}\n'
-                                 f'Senha: {password}\n'
-                                 f'Nome: {nome}')
+                                f'Email: {email}\n'
+                                f'Senha: {password}\n'
+                                f'Nome: {nome}')
             )
 
         except IntegrityError as e:
@@ -47,4 +47,4 @@ class Command(BaseCommand):
         except Exception as e:
             self.stdout.write(
                 self.style.ERROR(f'Erro inesperado: {str(e)}')
-            ) 
+            )
