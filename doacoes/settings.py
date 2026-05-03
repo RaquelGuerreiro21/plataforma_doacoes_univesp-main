@@ -182,30 +182,33 @@ TEMPLATES = [
 WSGI_APPLICATION = "doacoes.wsgi.application"
 
 
+# ---------------------------------------------------------------------------
 # Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+# Usa a variável DATABASE_URL (definida na Vercel e no .env local).
+# Localmente, o .env deve conter:
+#   DATABASE_URL=postgresql://neondb_owner:SUA_SENHA@ep-broad-silence-an84cwn0.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require
+# ---------------------------------------------------------------------------
+import dj_database_url
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': get_env_value('POSTGRES_DB', 'app_doacoes'),
-        'USER': get_env_value('POSTGRES_USER', 'app_doacoes_owner'),
-        'PASSWORD': get_env_value('POSTGRES_PASSWORD', 'npg_lLtzpE0j7fGR'),
-        'HOST': get_env_value('POSTGRES_HOST', 'ep-calm-night-ac4gjy82-pooler.sa-east-1.aws.neon.tech'),
-        'PORT': get_env_value('POSTGRES_PORT', '5432'),
-        'OPTIONS': {
-            'sslmode': 'require'
+DATABASE_URL = get_env_value('DATABASE_URL')
+
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+            ssl_require=True,
+        )
+    }
+else:
+    # Fallback local — só usado se DATABASE_URL não estiver definida
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
-}
-
-if get_env_value('DATABASE_URL'):
-    import dj_database_url
-    DATABASES['default'] = dj_database_url.config(
-        conn_max_age=600,
-        conn_health_checks=True,
-        ssl_require=True
-    )
 
 
 # Password validation
