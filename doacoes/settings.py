@@ -246,7 +246,7 @@ STATICFILES_DIRS = [
     BASE_DIR / "staticfiles",  # diretório com seus arquivos estáticos
 ]
 
-STATIC_ROOT = BASE_DIR / "staticfiles_build"  # onde collectstatic vai gerar arquivos
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_build')
 
 # WhiteNoise
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
