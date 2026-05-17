@@ -133,21 +133,19 @@
         </div>
     </div>
 
-    <!-- Linha 2: Gráfico de linha + Pizza -->
+    <!-- Linha 2: Gráfico de barras + Rosca -->
     <div class="row g-3 mb-4">
-        <!-- Gráfico de doações por mês -->
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <h6 class="card-title mb-3">
-                        <i class="fas fa-chart-line me-2 text-primary"></i>Doações nos Últimos 6 Meses
+                        <i class="fas fa-chart-bar me-2 text-primary"></i>Doações nos Últimos 6 Meses
                     </h6>
                     <canvas id="chartMeses" height="100"></canvas>
                 </div>
             </div>
         </div>
 
-        <!-- Gráfico de pizza: tipos de item -->
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
@@ -169,7 +167,6 @@
 
     <!-- Linha 3: Rankings + Recentes -->
     <div class="row g-3">
-        <!-- Top Doadores -->
         <div class="col-md-4">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
@@ -197,7 +194,6 @@
             </div>
         </div>
 
-        <!-- Top Recebedores -->
         <div class="col-md-4">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
@@ -225,7 +221,6 @@
             </div>
         </div>
 
-        <!-- Doações Recentes -->
         <div class="col-md-4">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
@@ -263,79 +258,63 @@
 {% endblock %}
 
 {% block extra_scripts %}
-{{ meses_labels|json_script:"mesesLabelsData" }}
-{{ meses_contagem|json_script:"mesesContagemData" }}
-{{ meses_valores|json_script:"mesesValoresData" }}
-{{ itens_tipos_labels|json_script:"itensTiposLabelsData" }}
-{{ itens_tipos_valores|json_script:"itensTiposValoresData" }}
 <script>
-    // Gráfico de linha — doações por mês
-    const mesesLabels = JSON.parse(document.getElementById('mesesLabelsData').textContent || '[]');
-    const mesesContagem = JSON.parse(document.getElementById('mesesContagemData').textContent || '[]');
-    const mesesValores = JSON.parse(document.getElementById('mesesValoresData').textContent || '[]');
+    // Gráfico de barras — doações por mês
+    const mesesLabels = JSON.parse('{{ meses_labels|escapejs }}');
+    const mesesContagem = JSON.parse('{{ meses_contagem|escapejs }}');
+    const mesesValores = JSON.parse('{{ meses_valores|escapejs }}');
 
-    const ctxMesesEl = document.getElementById('chartMeses');
-    if (ctxMesesEl) {
-        const ctxMeses = ctxMesesEl.getContext('2d');
-        new Chart(ctxMeses, {
-            type: 'line',
-            data: {
-                labels: mesesLabels.length ? mesesLabels : ['Sem dados'],
-                datasets: [
-                    {
-                        label: 'Quantidade de Doações',
-                        data: mesesContagem,
-                        borderColor: '#0d6efd',
-                        backgroundColor: 'rgba(13,110,253,0.08)',
-                        tension: 0.4,
-                        fill: true,
-                        yAxisID: 'y'
-                    },
-                    {
-                        label: 'Valor em R$',
-                        data: mesesValores,
-                        borderColor: '#198754',
-                        backgroundColor: 'rgba(25,135,84,0.08)',
-                        tension: 0.4,
-                        fill: true,
-                        yAxisID: 'y1'
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                interaction: { mode: 'index', intersect: false },
-                plugins: { legend: { position: 'top' } },
-                scales: {
-                    y: {
-                        type: 'linear',
-                        display: true,
-                        position: 'left',
-                        title: { display: true, text: 'Quantidade' },
-                        beginAtZero: true,
-                        ticks: { stepSize: 1 }
-                    },
-                    y1: {
-                        type: 'linear',
-                        display: true,
-                        position: 'right',
-                        title: { display: true, text: 'Valor (R$)' },
-                        beginAtZero: true,
-                        grid: { drawOnChartArea: false }
-                    }
+    new Chart(document.getElementById('chartMeses'), {
+        type: 'bar',
+        data: {
+            labels: mesesLabels.length ? mesesLabels : ['Sem dados'],
+            datasets: [
+                {
+                    label: 'Quantidade de Doações',
+                    data: mesesContagem,
+                    backgroundColor: 'rgba(13,110,253,0.7)',
+                    borderRadius: 6,
+                    yAxisID: 'y',
+                },
+                {
+                    label: 'Valor em R$',
+                    data: mesesValores,
+                    backgroundColor: 'rgba(25,135,84,0.7)',
+                    borderRadius: 6,
+                    yAxisID: 'y1',
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            interaction: { mode: 'index', intersect: false },
+            plugins: { legend: { position: 'top' } },
+            scales: {
+                y: {
+                    type: 'linear',
+                    position: 'left',
+                    title: { display: true, text: 'Quantidade' },
+                    beginAtZero: true,
+                    ticks: { stepSize: 1 }
+                },
+                y1: {
+                    type: 'linear',
+                    position: 'right',
+                    title: { display: true, text: 'Valor (R$)' },
+                    beginAtZero: true,
+                    grid: { drawOnChartArea: false }
                 }
             }
-        });
-    }
+        }
+    });
 
-    // Gráfico de pizza — itens por tipo
-    const chartTiposEl = document.getElementById('chartTipos');
-    if (chartTiposEl) {
-        const tiposLabels = JSON.parse(document.getElementById('itensTiposLabelsData').textContent || '[]');
-        const tiposValores = JSON.parse(document.getElementById('itensTiposValoresData').textContent || '[]');
+    // Gráfico de rosca — itens por tipo
+    const chartTiposElement = document.getElementById('chartTipos');
+    if (chartTiposElement) {
+        const tiposLabels = JSON.parse('{{ itens_tipos_labels|escapejs }}');
+        const tiposValores = JSON.parse('{{ itens_tipos_valores|escapejs }}');
 
-        const ctxTipos = chartTiposEl.getContext('2d');
-        new Chart(ctxTipos, {
+        new Chart(chartTiposElement, {
             type: 'doughnut',
             data: {
                 labels: tiposLabels,
