@@ -27,13 +27,16 @@
     {% for doacao in doacoes %}
       <tr>
                         <td>
-                            {% if doacao.item %}
-                                {{ doacao.item.nome }}
-                                <small class="text-muted d-block">{{ doacao.item.get_tipo_display }}</small>
-                            {% else %}
-                                -
-                            {% endif %}
-                        </td>
+    {% if doacao.item %}
+        {{ doacao.item.nome }}
+        <small class="text-muted d-block">{{ doacao.item.get_tipo_display }}</small>
+    {% elif doacao.valor %}
+        <i class="fas fa-money-bill-wave text-success me-1"></i>Dinheiro
+        <small class="text-success d-block fw-bold">R$ {{ doacao.valor|floatformat:2 }}</small>
+    {% else %}
+        -
+    {% endif %}
+</td>
         <td>
                             {% if doacao.doador %}
                                 {{ doacao.doador.nome }}
