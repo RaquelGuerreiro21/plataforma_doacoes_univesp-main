@@ -188,16 +188,25 @@ def doacao_wizard_api(request):
         # Cria a doação baseada no tipo
         if tipo_doacao == 'dinheiro':
             valor = data.get('valor')
-            if not valor or float(valor) <= 0:
+            try:
+                # Normaliza o valor: remove pontos de milhar e troca vírgula por ponto
+                valor_str = str(valor).replace('.', '').replace(',', '.')
+                valor_float = float(valor_str)
+                if valor_float <= 0:
+                    return Response(
+                        {'error': 'O valor da doação deve ser maior que zero'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+            except (TypeError, ValueError):
                 return Response(
-                    {'error': 'O valor da doação deve ser maior que zero'},
+                    {'error': 'Valor inválido. Use o formato: 1000.00'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
             
             doacao = Doacao.objects.create(
                 doador=doador,
                 recebedor=recebedor,
-                valor=valor
+                valor=valor_float
             )
         else:  # tipo_doacao == 'item'
             # Processa o item
