@@ -16,40 +16,64 @@
     </div>
 
     <div class="row g-4">
-        <!-- Card do Item -->
+        <!-- Card do Item OU Doação em Dinheiro -->
         <div class="col-md-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
-                    <h5 class="card-title mb-4">
-                        <i class="fas fa-box me-2 text-primary"></i>Item
-                    </h5>
-                    {% if doacao.item.foto %}
-                    <div class="text-center mb-4">
-                        <img src="{{ doacao.item.foto.url }}" alt="Foto do item" class="img-fluid rounded" style="max-height: 200px;">
-                    </div>
-                    {% endif %}
-                    <div class="row g-3">
-                        <div class="col-sm-6">
-                            <p class="text-muted mb-1">Nome</p>
-                            <p class="fw-bold">{{ doacao.item.nome }}</p>
-                        </div>
-                        <div class="col-sm-6">
-                            <p class="text-muted mb-1">Tipo</p>
-                            <p class="fw-bold">{{ doacao.item.get_tipo_display }}</p>
-                        </div>
-                        {% if doacao.item.descricao %}
-                        <div class="col-12">
-                            <p class="text-muted mb-1">Descrição</p>
-                            <p class="fw-bold">{{ doacao.item.descricao }}</p>
+                    {% if doacao.item %}
+                        <!-- Doação de Item -->
+                        <h5 class="card-title mb-4">
+                            <i class="fas fa-box me-2 text-primary"></i>Item
+                        </h5>
+                        {% if doacao.item.foto %}
+                        <div class="text-center mb-4">
+                            <img src="{{ doacao.item.foto.url }}" alt="Foto do item" class="img-fluid rounded" style="max-height: 200px;">
                         </div>
                         {% endif %}
-                        <div class="col-12">
-                            <p class="text-muted mb-1">Status</p>
-                            <span class="badge {% if doacao.item.disponivel %}bg-success{% else %}bg-danger{% endif %}">
-                                {{ doacao.item.disponivel|yesno:"Disponível,Indisponível" }}
-                            </span>
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <p class="text-muted mb-1">Nome</p>
+                                <p class="fw-bold">{{ doacao.item.nome }}</p>
+                            </div>
+                            <div class="col-sm-6">
+                                <p class="text-muted mb-1">Tipo</p>
+                                <p class="fw-bold">{{ doacao.item.get_tipo_display }}</p>
+                            </div>
+                            {% if doacao.item.descricao %}
+                            <div class="col-12">
+                                <p class="text-muted mb-1">Descrição</p>
+                                <p class="fw-bold">{{ doacao.item.descricao }}</p>
+                            </div>
+                            {% endif %}
+                            <div class="col-12">
+                                <p class="text-muted mb-1">Status</p>
+                                <span class="badge {% if doacao.item.disponivel %}bg-success{% else %}bg-danger{% endif %}">
+                                    {{ doacao.item.disponivel|yesno:"Disponível,Indisponível" }}
+                                </span>
+                            </div>
                         </div>
-                    </div>
+                    {% else %}
+                        <!-- Doação em Dinheiro -->
+                        <h5 class="card-title mb-4">
+                            <i class="fas fa-money-bill-wave me-2 text-success"></i>Doação em Dinheiro
+                        </h5>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <p class="text-muted mb-1">Tipo</p>
+                                <p class="fw-bold">Doação em Dinheiro</p>
+                            </div>
+                            <div class="col-12">
+                                <p class="text-muted mb-1">Valor</p>
+                                <p class="fw-bold fs-4 text-success">
+                                    R$ {{ doacao.valor|floatformat:2 }}
+                                </p>
+                            </div>
+                            <div class="col-12">
+                                <p class="text-muted mb-1">Status</p>
+                                <span class="badge bg-success">Recebido</span>
+                            </div>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -97,27 +121,33 @@
                         <i class="fas fa-user me-2 text-primary"></i>Recebedor
                     </h5>
                     <div class="row g-3">
-                        <div class="col-12">
-                            <p class="text-muted mb-1">Nome</p>
-                            <p class="fw-bold">{{ doacao.recebedor.nome }}</p>
-                        </div>
-                        {% if doacao.recebedor.email %}
-                        <div class="col-sm-6">
-                            <p class="text-muted mb-1">E-mail</p>
-                            <p class="fw-bold">{{ doacao.recebedor.email }}</p>
-                        </div>
-                        {% endif %}
-                        {% if doacao.recebedor.telefone %}
-                        <div class="col-sm-6">
-                            <p class="text-muted mb-1">Telefone</p>
-                            <p class="fw-bold">{{ doacao.recebedor.telefone }}</p>
-                        </div>
-                        {% endif %}
-                        {% if doacao.recebedor.endereco %}
-                        <div class="col-12">
-                            <p class="text-muted mb-1">Endereço</p>
-                            <p class="fw-bold">{{ doacao.recebedor.endereco }}</p>
-                        </div>
+                        {% if doacao.recebedor %}
+                            <div class="col-12">
+                                <p class="text-muted mb-1">Nome</p>
+                                <p class="fw-bold">{{ doacao.recebedor.nome }}</p>
+                            </div>
+                            {% if doacao.recebedor.email %}
+                            <div class="col-sm-6">
+                                <p class="text-muted mb-1">E-mail</p>
+                                <p class="fw-bold">{{ doacao.recebedor.email }}</p>
+                            </div>
+                            {% endif %}
+                            {% if doacao.recebedor.telefone %}
+                            <div class="col-sm-6">
+                                <p class="text-muted mb-1">Telefone</p>
+                                <p class="fw-bold">{{ doacao.recebedor.telefone }}</p>
+                            </div>
+                            {% endif %}
+                            {% if doacao.recebedor.endereco %}
+                            <div class="col-12">
+                                <p class="text-muted mb-1">Endereço</p>
+                                <p class="fw-bold">{{ doacao.recebedor.endereco }}</p>
+                            </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="col-12">
+                                <p class="text-muted fst-italic">Nenhum recebedor definido.</p>
+                            </div>
                         {% endif %}
                     </div>
                 </div>
@@ -152,4 +182,4 @@
         </div>
     </div>
 </div>
-{% endblock %} 
+{% endblock %}
