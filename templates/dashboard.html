@@ -2,102 +2,8 @@
 
 {% block title %}Dashboard - Sistema de Doações{% endblock %}
 
-{% block content %}
-<div class="container py-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="h3 mb-2">Dashboard</h2>
-            <p class="text-muted mb-0">Visão geral do sistema</p>
-        </div>
-        <a href="{% url 'doacao_wizard' %}" class="btn btn-primary">
-            <i class="fas fa-plus me-2"></i>Nova Doação
-        </a>
-    </div>
-
-    <div class="row g-4">
-        <!-- Card de Doações -->
-        <div class="col-md-6 col-lg-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="flex-shrink-0">
-                            <div class="avatar-circle bg-primary bg-opacity-10 text-primary">
-                                <i class="fas fa-hand-holding-heart"></i>
-                            </div>
-                        </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h6 class="card-title mb-0">Doações</h6>
-                            <small class="text-muted">Total de doações</small>
-                        </div>
-                    </div>
-                    <h3 class="mb-0">{{ total_doacoes }}</h3>
-                </div>
-            </div>
-        </div>
-
-        <!-- Card de Doadores -->
-        <div class="col-md-6 col-lg-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="flex-shrink-0">
-                            <div class="avatar-circle bg-success bg-opacity-10 text-success">
-                                <i class="fas fa-user-friends"></i>
-                            </div>
-                        </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h6 class="card-title mb-0">Doadores</h6>
-                            <small class="text-muted">Total de doadores</small>
-                        </div>
-                    </div>
-                    <h3 class="mb-0">{{ total_doadores }}</h3>
-                </div>
-            </div>
-        </div>
-
-        <!-- Card de Recebedores -->
-        <div class="col-md-6 col-lg-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="flex-shrink-0">
-                            <div class="avatar-circle bg-info bg-opacity-10 text-info">
-                                <i class="fas fa-users"></i>
-                            </div>
-                        </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h6 class="card-title mb-0">Recebedores</h6>
-                            <small class="text-muted">Total de recebedores</small>
-                        </div>
-                    </div>
-                    <h3 class="mb-0">{{ total_recebedores }}</h3>
-                </div>
-            </div>
-        </div>
-
-        <!-- Card de Itens -->
-        <div class="col-md-6 col-lg-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="flex-shrink-0">
-                            <div class="avatar-circle bg-warning bg-opacity-10 text-warning">
-                                <i class="fas fa-box-open"></i>
-                            </div>
-                        </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h6 class="card-title mb-0">Itens</h6>
-                            <small class="text-muted">Total de itens</small>
-                        </div>
-                    </div>
-                    <h3 class="mb-0">{{ total_itens }}</h3>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 {% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
     .avatar-circle {
         width: 48px;
@@ -108,14 +14,347 @@
         justify-content: center;
         font-size: 1.25rem;
     }
-
     .card {
         transition: transform 0.2s;
     }
-
     .card:hover {
-        transform: translateY(-5px);
+        transform: translateY(-3px);
+    }
+    .stat-card .display-6 {
+        font-weight: 700;
+    }
+    .ranking-item {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .ranking-item:last-child {
+        border-bottom: none;
+    }
+    .ranking-badge {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+    .recent-item {
+        padding: 0.6rem 0;
+        border-bottom: 1px solid #f5f5f5;
+    }
+    .recent-item:last-child {
+        border-bottom: none;
     }
 </style>
 {% endblock %}
-{% endblock %} 
+
+{% block content %}
+<div class="container-fluid py-4 px-4">
+
+    <!-- Cabeçalho -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h3 mb-1">Dashboard</h2>
+            <p class="text-muted mb-0">Visão geral e análise de dados</p>
+        </div>
+        <a href="{% url 'doacao_wizard' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Nova Doação
+        </a>
+    </div>
+
+    <!-- Linha 1: Cards de totais -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100 stat-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="avatar-circle bg-primary bg-opacity-10 text-primary me-3">
+                            <i class="fas fa-hand-holding-heart"></i>
+                        </div>
+                        <small class="text-muted">Total de Doações</small>
+                    </div>
+                    <div class="display-6">{{ total_doacoes }}</div>
+                    <small class="text-muted">
+                        <i class="fas fa-money-bill-wave text-success me-1"></i>{{ total_doacoes_dinheiro }} em dinheiro &nbsp;·&nbsp;
+                        <i class="fas fa-box text-primary me-1"></i>{{ total_doacoes_item }} em itens
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100 stat-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="avatar-circle bg-success bg-opacity-10 text-success me-3">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                        <small class="text-muted">Total Arrecadado</small>
+                    </div>
+                    <div class="display-6 text-success">R$&nbsp;{{ total_dinheiro|floatformat:2 }}</div>
+                    <small class="text-muted">em doações em dinheiro</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100 stat-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="avatar-circle bg-info bg-opacity-10 text-info me-3">
+                            <i class="fas fa-user-friends"></i>
+                        </div>
+                        <small class="text-muted">Doadores</small>
+                    </div>
+                    <div class="display-6">{{ total_doadores }}</div>
+                    <small class="text-muted">cadastrados no sistema</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100 stat-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="avatar-circle bg-warning bg-opacity-10 text-warning me-3">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <small class="text-muted">Recebedores</small>
+                    </div>
+                    <div class="display-6">{{ total_recebedores }}</div>
+                    <small class="text-muted">{{ total_itens }} itens cadastrados</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Linha 2: Gráfico de linha + Pizza -->
+    <div class="row g-3 mb-4">
+        <!-- Gráfico de doações por mês -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="card-title mb-3">
+                        <i class="fas fa-chart-line me-2 text-primary"></i>Doações nos Últimos 6 Meses
+                    </h6>
+                    <canvas id="chartMeses" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfico de pizza: tipos de item -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="card-title mb-3">
+                        <i class="fas fa-chart-pie me-2 text-warning"></i>Itens por Categoria
+                    </h6>
+                    {% if total_itens > 0 %}
+                        <canvas id="chartTipos" height="180"></canvas>
+                    {% else %}
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-box-open fa-2x mb-2"></i>
+                            <p class="mb-0">Nenhum item cadastrado</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Linha 3: Rankings + Recentes -->
+    <div class="row g-3">
+        <!-- Top Doadores -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="card-title mb-3">
+                        <i class="fas fa-trophy me-2 text-warning"></i>Top Doadores
+                    </h6>
+                    {% for doador in top_doadores %}
+                    <div class="ranking-item">
+                        <div class="ranking-badge me-3
+                            {% if forloop.counter == 1 %}bg-warning text-white
+                            {% elif forloop.counter == 2 %}bg-secondary text-white
+                            {% elif forloop.counter == 3 %}bg-danger bg-opacity-75 text-white
+                            {% else %}bg-light text-muted{% endif %}">
+                            {{ forloop.counter }}
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-semibold">{{ doador.nome }}</div>
+                            <small class="text-muted">{{ doador.total_doacoes }} doação{{ doador.total_doacoes|pluralize:",ões" }}</small>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center py-3">Nenhum doador ainda.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Recebedores -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="card-title mb-3">
+                        <i class="fas fa-heart me-2 text-danger"></i>Top Recebedores
+                    </h6>
+                    {% for recebedor in top_recebedores %}
+                    <div class="ranking-item">
+                        <div class="ranking-badge me-3
+                            {% if forloop.counter == 1 %}bg-danger text-white
+                            {% elif forloop.counter == 2 %}bg-secondary text-white
+                            {% elif forloop.counter == 3 %}bg-warning text-white
+                            {% else %}bg-light text-muted{% endif %}">
+                            {{ forloop.counter }}
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-semibold">{{ recebedor.nome }}</div>
+                            <small class="text-muted">{{ recebedor.total_recebimentos }} recebimento{{ recebedor.total_recebimentos|pluralize:",s" }}</small>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center py-3">Nenhum recebedor ainda.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Doações Recentes -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="card-title mb-3">
+                        <i class="fas fa-clock me-2 text-info"></i>Doações Recentes
+                    </h6>
+                    {% for doacao in doacoes_recentes %}
+                    <div class="recent-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="fw-semibold" style="font-size:0.9rem;">{{ doacao.doador.nome }}</div>
+                                <small class="text-muted">
+                                    {% if doacao.item %}
+                                        <i class="fas fa-box me-1"></i>{{ doacao.item.nome }}
+                                    {% else %}
+                                        <i class="fas fa-money-bill-wave text-success me-1"></i>R$ {{ doacao.valor|floatformat:2 }}
+                                    {% endif %}
+                                </small>
+                            </div>
+                            <small class="text-muted">{{ doacao.data|date:"d/m" }}</small>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center py-3">Nenhuma doação ainda.</p>
+                    {% endfor %}
+                    <div class="text-center mt-3">
+                        <a href="{% url 'doacao_list' %}" class="btn btn-sm btn-outline-primary">Ver todas</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{{ meses_labels|json_script:"mesesLabelsData" }}
+{{ meses_contagem|json_script:"mesesContagemData" }}
+{{ meses_valores|json_script:"mesesValoresData" }}
+{{ itens_tipos_labels|json_script:"itensTiposLabelsData" }}
+{{ itens_tipos_valores|json_script:"itensTiposValoresData" }}
+<script>
+    // Gráfico de linha — doações por mês
+    const mesesLabels = JSON.parse(document.getElementById('mesesLabelsData').textContent || '[]');
+    const mesesContagem = JSON.parse(document.getElementById('mesesContagemData').textContent || '[]');
+    const mesesValores = JSON.parse(document.getElementById('mesesValoresData').textContent || '[]');
+
+    const ctxMesesEl = document.getElementById('chartMeses');
+    if (ctxMesesEl) {
+        const ctxMeses = ctxMesesEl.getContext('2d');
+        new Chart(ctxMeses, {
+            type: 'line',
+            data: {
+                labels: mesesLabels.length ? mesesLabels : ['Sem dados'],
+                datasets: [
+                    {
+                        label: 'Quantidade de Doações',
+                        data: mesesContagem,
+                        borderColor: '#0d6efd',
+                        backgroundColor: 'rgba(13,110,253,0.08)',
+                        tension: 0.4,
+                        fill: true,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Valor em R$',
+                        data: mesesValores,
+                        borderColor: '#198754',
+                        backgroundColor: 'rgba(25,135,84,0.08)',
+                        tension: 0.4,
+                        fill: true,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                interaction: { mode: 'index', intersect: false },
+                plugins: { legend: { position: 'top' } },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: { display: true, text: 'Quantidade' },
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: { display: true, text: 'Valor (R$)' },
+                        beginAtZero: true,
+                        grid: { drawOnChartArea: false }
+                    }
+                }
+            }
+        });
+    }
+
+    // Gráfico de pizza — itens por tipo
+    const chartTiposEl = document.getElementById('chartTipos');
+    if (chartTiposEl) {
+        const tiposLabels = JSON.parse(document.getElementById('itensTiposLabelsData').textContent || '[]');
+        const tiposValores = JSON.parse(document.getElementById('itensTiposValoresData').textContent || '[]');
+
+        const ctxTipos = chartTiposEl.getContext('2d');
+        new Chart(ctxTipos, {
+            type: 'doughnut',
+            data: {
+                labels: tiposLabels,
+                datasets: [{
+                    data: tiposValores,
+                    backgroundColor: [
+                        '#0d6efd','#198754','#ffc107','#dc3545','#0dcaf0','#6f42c1'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom', labels: { font: { size: 11 } } }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}
